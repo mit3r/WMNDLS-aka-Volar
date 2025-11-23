@@ -1,4 +1,4 @@
-# WMNDLS - Wireless Mandala LED System
+# WMNDLS - Wireless Mandala LED System aka *Volar*
 
 A project implementing wireless control and synchronization of WS2812B LED strips using the ESP-NOW protocol. The system consists of one transmitter (Server) and multiple receivers (Client).
 
