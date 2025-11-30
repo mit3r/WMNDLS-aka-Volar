@@ -1,5 +1,11 @@
 #include <EEPROM.h>
 
+#pragma once
+
+struct structStorage {
+  uint8_t deviceId = 0;
+} storage;
+
 template <typename T>
 class NonVolatile {
   private:

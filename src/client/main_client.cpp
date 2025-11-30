@@ -1,65 +1,77 @@
-#include <ESP8266WiFi.h>
+#include <Arduino.h>
 #include <FastLED.h>
-#include <espnow.h>
 
-#include "NonVolatile.cpp"
+#define NUM_LEDS 50
+
+#include "Button.h"
+#include "NonVolatile.h"
+#include "Receiver.h"
+#include "State.h"
+#include "Strip.h"
 #include "protocol.h"
 
-#define LED_PIN 2     // GPIO2
+// State programs
+#include "states/Program.h"
+//
+#include "states/AddrProgram.h"
+#include "states/BootProgram.h"
+#include "states/IdleProgram.h"
+#include "states/ReceiveProgram.h"
+
+#define FPS 60
+#define FRAME_DELAY_MS (1000 / FPS)
+
 #define BUTTON_PIN 3  // GPIO3 (RX)
-#define LED_TYPE WS2812B
-#define COLOR_ORDER GRB
+// #define BUTTON_PIN 0  // GPIO0 (BOOT)
 
-struct structStorage {
-  uint8_t deviceId = 0;
-};
-
-structStorage storage;
-structMessage message;
-uint32_t order = 0;
-CRGB leds[NUM_LEDS];
-
-bool newMessage = false;
-
-void OnDataRecv(uint8_t* mac, uint8_t* incomingData, uint8_t len) {
-  memcpy(&message, incomingData, sizeof(message));
-  newMessage = true;
-}
+Button button(BUTTON_PIN);
+Program* programs[TState::length]{nullptr};
 
 void setup() {
-  Serial.begin(115200);
+  // DO NOT USE Serial
+  // Serial.begin(115200);
 
-  // EPSNOW setup
-  WiFi.mode(WIFI_STA);
+  programs[TState::STATE_IDLE] = new IdleProgram();
+  programs[TState::STATE_RECV] = new ReceiveProgram();
+  programs[TState::STATE_ADDR] = new AddrProgram();
+  programs[TState::STATE_BOOT] = new BootProgram();
 
-  if (esp_now_init() != 0) return;
-  esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
-  esp_now_register_recv_cb(OnDataRecv);
+  Receiver::setup();
+  Strip::setup();
 
-  // FastLED setup
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-  FastLED.setBrightness(180);
-  FastLED.setCorrection(TypicalLEDStrip);
-  FastLED.clear();
+  pinMode(BUTTON_PIN, INPUT);
+
+  button.callbackPress = []() {
+    Program* program = programs[State.getCurrent()];
+    if (program != nullptr) program->onButtonPress();
+  };
+
+  button.callbackLongPress = []() {
+    Program* program = programs[State.getCurrent()];
+    if (program != nullptr) program->onButtonLongPress();
+  };
+
+  button.callbackLongLongPress = []() {
+    Program* program = programs[State.getCurrent()];
+    if (program != nullptr) program->onButtonLongLongPress();
+  };
 }
 
 void loop() {
-  if (newMessage) {
-    newMessage = false;
-
-    // Validate message
-    if (message.networkId != NETWORK_ID) return;
-    if (message.deviceId != storage.deviceId && message.deviceId != 0) return;
-    if (message.ledCount > NUM_LEDS) return;
-    if (message.order <= order) return;
-
-    // Process message
-    order = message.order;
-    memcpy(leds, message.leds, sizeof(CRGB) * NUM_LEDS);
+  EVERY_N_MILLISECONDS(FRAME_DELAY_MS) {
     FastLED.show();
+  }
 
-    Serial.print("Received message order: ");
-    Serial.println(message.order);
+  button.handle();
+
+  Program* program = programs[State.getCurrent()];
+
+  if (program != nullptr) {
+    if (State.hasChanged()) program->setup();
+    program->loop();
+
+    if (Receiver::hasNewMessage())
+      program->onMessage(Receiver::getMessage());
   }
 
   yield();
