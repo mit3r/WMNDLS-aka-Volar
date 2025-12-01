@@ -7,8 +7,10 @@
 static uint8_t counter = MAN_ADDR_COUNT - 1;
 
 class AddrProgram : public Program {
-  private:
-  void draw() {
+  public:
+  static AddrProgram program;
+
+  void loop() override {
     fill_solid(Strip::leds, NUM_LEDS, CRGB::Black);
     Strip::leds[0] = CRGB::Blue;
     Strip::leds[NUM_LEDS - 1] = CRGB::Blue;
@@ -16,24 +18,20 @@ class AddrProgram : public Program {
     for (size_t i = 0; i < log2(MAN_ADDR_COUNT); i++) {
       if (counter & (1 << i)) Strip::leds[i + 1] = CRGB::Red;
     }
-  }
-
-  public:
-  static AddrProgram program;
+  };
 
   void setup() override {
     counter = (unsigned char)storage.deviceId;
-    draw();
   };
 
   void onButtonPress() override {
     counter = (counter + 1) % MAN_ADDR_COUNT;
-    draw();
-  }
+  };
 
   void onMessage(const Message& message) override {
     if (message.header.type == MessageType::SET_ADDR) {
       storage.deviceId = message.payloadSetAddress.newDeviceId;
+      counter = (unsigned char)storage.deviceId;
     }
   };
 

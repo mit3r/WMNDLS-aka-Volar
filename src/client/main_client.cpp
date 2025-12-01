@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
-#define NUM_LEDS 50
-
 #include "Button.h"
 #include "NonVolatile.h"
 #include "Receiver.h"
@@ -58,21 +56,23 @@ void setup() {
 }
 
 void loop() {
-  EVERY_N_MILLISECONDS(FRAME_DELAY_MS) {
-    FastLED.show();
+  FastLED.show();
+
+  EVERY_N_MILLIS(1000) {                           // 400 without delay
+    Serial.printf("FPS: %d\n", FastLED.getFPS());  // Update FPS counter
+
+    Serial.printf("WiFi Channel: %d\n", WiFi.channel());
   }
 
   button.handle();
 
   Program* program = programs[State.getCurrent()];
 
-  if (program != nullptr) {
-    if (State.hasChanged()) program->setup();
-    program->loop();
-
-    if (Receiver::hasNewMessage())
-      program->onMessage(Receiver::getMessage());
+  if (State.hasChanged()) program->setup();
+  if (Receiver::hasNewMessage()) {
+    program->onMessage(Receiver::popMessage());
   }
+  program->loop();
 
   yield();
 }

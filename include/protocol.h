@@ -22,7 +22,7 @@ struct Header {
   uint32_t order;
 };
 
-union Message {
+struct Message {
   Header header;
 
   union {

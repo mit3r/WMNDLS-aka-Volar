@@ -18,9 +18,13 @@ class Receiver {
     if (message.header.deviceId != storage.deviceId && message.header.deviceId != 0) return;
     // Specific message validation
     if ((message.header.type == MessageType::UPDATE_LEDS ||
-         message.header.type == MessageType::SET_ADDR ||
-         message.header.type == MessageType::SHOW) &&
+         message.header.type == MessageType::SET_ADDR) &&
         message.header.order <= order) return;
+
+    if (message.header.type == MessageType::NEW_ORDER)
+      order = message.header.order;
+
+    newMessage = true;
   }
 
   public:
@@ -38,7 +42,9 @@ class Receiver {
   }
 
   static const Message&
-  getMessage() {
+  popMessage() {
+    // Serial.printf("Received message of type %d with order %d\n", message.header.type, message.header.order);
+
     newMessage = false;
     order = message.header.order;
     return message;
