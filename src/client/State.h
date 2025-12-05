@@ -11,28 +11,31 @@ enum TState {
   length,      // Number of states
 };
 
-class CState {
+class State {
   private:
-  Ticker ticker;
-  TState current = TState::STATE_BOOT;
-  bool changed = true;
+      static Ticker ticker;
+      static TState current;
+      static bool changed;
 
   public:
-  inline const TState getCurrent() {
-    return current;
-  }
+      inline static const TState getCurrent() {
+        return current;
+      }
 
-  inline bool hasChanged() {
-    if (changed) {
-      changed = false;
-      return true;
-    } else
-      return false;
-  }
+      inline static bool hasChanged() {
+        if (changed) {
+          changed = false;
+          return true;
+        } else
+          return false;
+      }
 
-  void
-  set(TState newState) {
-    changed = true;
-    current = newState;
-  }
-} State;
+      static void set(TState newState) {
+        changed = true;
+        current = newState;
+      }
+};
+
+Ticker State::ticker = Ticker();
+TState State::current = TState::STATE_IDLE;
+bool State::changed = false;

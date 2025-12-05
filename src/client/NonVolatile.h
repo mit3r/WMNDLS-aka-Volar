@@ -3,7 +3,7 @@
 #pragma once
 
 struct structStorage {
-  uint8_t deviceId = 1;
+  uint8_t channelId = 0b00000001;
 } storage;
 
 template <typename T>

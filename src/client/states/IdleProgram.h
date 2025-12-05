@@ -30,11 +30,11 @@ class IdleProgram : public Program {
   }
 
   void onButtonLongPress() override {
-    State.set(TState::STATE_RECV);
+    State::set(TState::STATE_RECV);
   }
 
   void onButtonLongLongPress() override {
-    State.set(TState::STATE_RECV);
+    State::set(TState::STATE_RECV);
   }
 
   unsigned char blinks = 0;

@@ -16,9 +16,6 @@
 #include "states/IdleProgram.h"
 #include "states/ReceiveProgram.h"
 
-#define FPS 60
-#define FRAME_DELAY_MS (1000 / FPS)
-
 #define BUTTON_PIN 3  // GPIO3 (RX)
 // #define BUTTON_PIN 0  // GPIO0 (BOOT)
 
@@ -27,7 +24,7 @@ Program* programs[TState::length]{nullptr};
 
 void setup() {
   // DO NOT USE Serial
-  // Serial.begin(115200);
+  Serial.begin(115200);
 
   programs[TState::STATE_IDLE] = new IdleProgram();
   programs[TState::STATE_RECV] = new ReceiveProgram();
@@ -40,39 +37,41 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT);
 
   button.callbackPress = []() {
-    Program* program = programs[State.getCurrent()];
+    Program* program = programs[State::getCurrent()];
     if (program != nullptr) program->onButtonPress();
   };
 
   button.callbackLongPress = []() {
-    Program* program = programs[State.getCurrent()];
+    Program* program = programs[State::getCurrent()];
     if (program != nullptr) program->onButtonLongPress();
   };
 
   button.callbackLongLongPress = []() {
-    Program* program = programs[State.getCurrent()];
+    Program* program = programs[State::getCurrent()];
     if (program != nullptr) program->onButtonLongLongPress();
   };
 }
 
 void loop() {
-  FastLED.show();
-
   EVERY_N_MILLIS(1000) {                           // 400 without delay
     Serial.printf("FPS: %d\n", FastLED.getFPS());  // Update FPS counter
-
     Serial.printf("WiFi Channel: %d\n", WiFi.channel());
   }
 
+  Strip::show();
   button.handle();
 
-  Program* program = programs[State.getCurrent()];
-
-  if (State.hasChanged()) program->setup();
-  if (Receiver::hasNewMessage()) {
-    program->onMessage(Receiver::popMessage());
-  }
+  Program* program = programs[State::getCurrent()];
   program->loop();
-
   yield();
+
+  if (State::hasChanged()) program->setup();
+
+  while (Receiver::hasNewMessages()) {
+    static Message* msg = Receiver::getMessage();
+    static uint8_t* length = Receiver::getMessageLength();
+
+    Strip::onMessage(msg, length);
+    //  program->onMessage(msg, length);
+  }
 }

@@ -19,7 +19,7 @@ class BootProgram : public Program {
       Strip::leds[NUM_LEDS - 1] = lightOn ? CRGB::Black : CRGB::Green;
       lightOn = !lightOn;
       if (!lightOn) blinks++;
-      if (blinks == 1) State.set(TState::STATE_RECV);
+      if (blinks == 1) State::set(TState::STATE_RECV);
     }
   }
 

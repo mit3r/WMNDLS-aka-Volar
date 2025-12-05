@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <button id="connect">Connect</button>
+
+    <button id="send1">Send 1</button>
+    <button id="sendLong">Send Long</button>
+
+    <table>
+      <tr>
+        <th>Format</th>
+        <th>FPS</th>
+        <th>Devices</th>
+      </tr>
+
+      <tr>
+        <td>RGB24</td>
+        <td>27</td>
+        <td>2</td>
+      </tr>
+
+      <tr>
+        <td>RGB16</td>
+        <td>27.5</td>
+        <td>4</td>
+      </tr>
+
+      <tr>
+        <td>RGB8</td>
+        <td>27.5</td>
+        <td>8</td>
+      </tr>
+    </table>
+
+    <script src="index.js"></script>
+
+    <!-- <script>
+      function concatUint8Arrays(...arrays) {
+        let totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
+        let result = new Uint8Array(totalLength);
+        let offset = 0;
+        for (let arr of arrays) {
+          result.set(arr, offset);
+          offset += arr.length;
+        }
+        return result;
+      }
+
+      const MessageHeader = new Uint8Array([
+        0xca,
+        0xfe,
+        0xbe,
+        0x16, // Network ID
+        0x00,
+        0x01, // Order
+        0x02, // Message Type
+      ]);
+
+      const MessageChannel = new Uint8Array([0xff]); // Broadcast
+
+      const MessagePayload = new Uint8Array(50 * 3).map((_, i) => (i % 2 == 0 ? 0xff : 0x00)); // 50 Red LEDs
+
+      const PacketHeader = new Uint8Array([
+        0x61, // Preamble
+        MessageHeader.length + (MessageChannel.length + MessagePayload.length) * 2, // Length
+      ]);
+
+      const Packet = concatUint8Arrays(PacketHeader, MessageHeader, MessageChannel, MessagePayload);
+
+      let port;
+      let writer;
+      let reader;
+
+      document.getElementById("connect").onclick = async () => {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+
+        const readInt = setInterval(async () => {
+          try {
+            const { value, done } = await reader.read();
+            if (done) {
+              console.log("Reader closed");
+              clearInterval(readInt);
+              return;
+            }
+            const decoded = new TextDecoder().decode(value);
+            console.log("Received:", decoded);
+          } catch (error) {
+            console.error("Read error:", error);
+            clearInterval(readInt);
+          }
+        }, 100);
+      };
+
+      document.getElementById("send1").onclick = async () => {
+        await writer.write(Packet);
+      };
+
+      document.getElementById("sendLong").onclick = async () => {
+        const it = setInterval(async () => {
+          await writer.write(Packet);
+        });
+
+        setTimeout(() => {
+          clearInterval(it);
+        }, 10_000);
+      };
+    </script> -->
+  </body>
+</html>

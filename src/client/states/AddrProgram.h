@@ -21,26 +21,19 @@ class AddrProgram : public Program {
   };
 
   void setup() override {
-    counter = (unsigned char)storage.deviceId;
+    counter = (unsigned char)storage.channelId;
   };
 
   void onButtonPress() override {
     counter = (counter + 1) % MAN_ADDR_COUNT;
   };
 
-  void onMessage(const Message& message) override {
-    if (message.header.type == MessageType::SET_ADDR) {
-      storage.deviceId = message.payloadSetAddress.newDeviceId;
-      counter = (unsigned char)storage.deviceId;
-    }
-  };
-
   void onButtonLongPress() override {
-    storage.deviceId = counter;
-    State.set(TState::STATE_RECV);
+    storage.channelId = counter;
+    State::set(TState::STATE_RECV);
   }
 
   void onButtonLongLongPress() override {
-    State.set(TState::STATE_IDLE);
+    State::set(TState::STATE_IDLE);
   }
 };
