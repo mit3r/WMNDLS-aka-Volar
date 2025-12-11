@@ -36,6 +36,8 @@ class Strip {
   }
 
   static void onMessage(Message* message, uint8_t* length) {
+    Serial.println("Strip::onMessage called");
+
     if (message->header.type != MessageType::COLORS8 &&
         message->header.type != MessageType::COLORS16 &&
         message->header.type != MessageType::COLORS24) {
@@ -49,13 +51,21 @@ class Strip {
           payloadId = id;
     }
 
+    Serial.printf("Payload ID: %d\n", payloadId);
+
     if (message->header.type == MessageType::COLORS8) Strip::set(message->colors8[payloadId]);
     if (message->header.type == MessageType::COLORS16) Strip::set(message->colors16[payloadId]);
     if (message->header.type == MessageType::COLORS24) Strip::set(message->colors24[payloadId]);
+
+    Serial.printf("Updated strip with %d colors of type %d on channel %d\n",
+                  NUM_LEDS, message->header.type, storage.channelId);
+
+    changed = true;
   }
 
-  static void show() {
-    if (changed && (changed = false)) FastLED.show();
+  static void loop() {
+    // if (changed && (changed = false)) FastLED.show();
+    FastLED.show();
   }
 
   static CRGB leds[NUM_LEDS];

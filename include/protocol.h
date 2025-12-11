@@ -24,27 +24,27 @@ enum MessageType : uint8_t {
   COLORS8,   // Set LED colors in 8-bit RGB332
 };
 
-struct Header {
+struct __attribute__((packed)) Header {
   uint32_t networkId = NETWORK_ID;  // Network identifier
-  uint16_t order = 0;               // Message order to prevent old messages
   uint8_t length = 0;               // Total message length in bytes
+  uint16_t order = 0;               // Message order to prevent old
   MessageType type;                 // Message type
   uint8_t channels;                 // Every bit represents a destination channel (max 8)
 };
 
-struct RGB565 {  // Size: 2B
+struct __attribute__((packed)) RGB565 {  // Size: 2B
   uint16_t red : 5;
   uint16_t green : 6;
   uint16_t blue : 5;
 };
 
-struct RGB8 {  // Size: 1B
+struct __attribute__((packed)) RGB8 {  // Size: 1B
   uint8_t red : 3;
   uint8_t green : 3;
   uint8_t blue : 2;
 };
 
-struct Config {
+struct __attribute__((packed)) Config {
   enum RGBResolution {
     RGB24,
     RGB16,

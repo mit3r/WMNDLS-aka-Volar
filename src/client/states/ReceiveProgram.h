@@ -7,6 +7,7 @@ class ReceiveProgram : public Program {
   void setup() override {
     blinks = 0;
     fill_solid(Strip::leds, NUM_LEDS, CRGB::Black);
+    Serial.println("Entered Receive Program");
   }
 
   void loop() override {

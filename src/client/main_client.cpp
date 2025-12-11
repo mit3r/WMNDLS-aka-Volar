@@ -24,7 +24,7 @@ Program* programs[TState::length]{nullptr};
 
 void setup() {
   // DO NOT USE Serial
-  Serial.begin(115200);
+  // Serial.begin(115200);
 
   programs[TState::STATE_IDLE] = new IdleProgram();
   programs[TState::STATE_RECV] = new ReceiveProgram();
@@ -58,12 +58,13 @@ void loop() {
     Serial.printf("WiFi Channel: %d\n", WiFi.channel());
   }
 
-  Strip::show();
+  EVERY_N_MILLIS(FRAME_DELAY_MS) {
+    Strip::loop();
+  }
+
   button.handle();
 
   Program* program = programs[State::getCurrent()];
-  program->loop();
-  yield();
 
   if (State::hasChanged()) program->setup();
 
@@ -71,7 +72,12 @@ void loop() {
     static Message* msg = Receiver::getMessage();
     static uint8_t* length = Receiver::getMessageLength();
 
+    Serial.println("Processing new message in main loop");
+
     Strip::onMessage(msg, length);
-    //  program->onMessage(msg, length);
+    Receiver::popMessage();
   }
+
+  program->loop();
+  yield();
 }

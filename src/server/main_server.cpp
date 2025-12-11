@@ -17,13 +17,14 @@ void loop() {
   RUN_ONCE {
     for (int i = 0; i < 5; i++)
       while (!Sender::sendOrderMessage()) yield();
-  };
+  }
 
   Commander::loop();
   Sender::loop();
 
   if (Commander::hasMessage()) {
     Message message = Commander::popMessage();
+
     while (!Sender::sendMessage(message)) yield();
   }
 }

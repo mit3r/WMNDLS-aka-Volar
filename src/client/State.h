@@ -37,5 +37,5 @@ class State {
 };
 
 Ticker State::ticker = Ticker();
-TState State::current = TState::STATE_IDLE;
-bool State::changed = false;
+TState State::current = TState::STATE_BOOT;
+bool State::changed = true;

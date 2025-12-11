@@ -42,18 +42,19 @@ class Sender {
 
   static bool sendMessage(Message message) {
     if (wait) return false;
-    message.header.order = order++;
-    esp_now_send(BROADCAST_ADDRESS, (uint8_t*)&message, sizeof(message));
+    // message.header.order = ++order;
+    esp_now_send(BROADCAST_ADDRESS, (uint8_t*)&message, message.header.length);
     wait = true;
     return true;
   }
 
   static bool sendOrderMessage() {
     if (wait) return false;
-    message.header.order = order++;
+    // message.header.order = order;
     message.header.type = MessageType::ORDER;
+    message.header.length = sizeof(Header);
 
-    esp_now_send(BROADCAST_ADDRESS, (uint8_t*)&message, sizeof(message));
+    esp_now_send(BROADCAST_ADDRESS, (uint8_t*)&message, message.header.length);
     return wait = true;
   }
 };

@@ -29,36 +29,30 @@ class Receiver {
         messageAvailable = true;
       }
 
-      // static void onRecv(uint8_t* mac, uint8_t* incomingData, uint8_t length) {
-      //   // Reject messages from other WMNDLS networks
-      //   uint32_t id;
-      //   if (length < sizeof(uint32_t)) return;
-      //   memcpy(&id, incomingData, sizeof(uint32_t));
-      //   if (id != NETWORK_ID) return;
-      //   pushMessage((Message*)incomingData, length);
-      // }
-
       static void onRecv(uint8_t* mac, uint8_t* incomingData, uint8_t length) {
         // Reject messages from other WMNDLS networks
-        uint32_t id;
-        if (length < sizeof(uint32_t)) return;
-
-        memcpy(&id, incomingData, sizeof(uint32_t));
-        if (id != NETWORK_ID) return;
-
+        if (((Message*)incomingData)->header.networkId != NETWORK_ID) return;
         pushMessage((Message*)incomingData, length);
       }
 
       static bool shouldProcceed() {
         Message* message = &messageBuffer;
         // Synchronize message order
-        if (message->header.type == MessageType::ORDER) {
-          order = message->header.order;
-          return false;
-        }
+        // if (message->header.type == MessageType::ORDER) {
+        //   order = message->header.order;
+        //   return false;
+        // }
+
+        Serial.println("Processing new message in Strip::onMessage");
+        Serial.printf("Network ID: %08X\n", message->header.networkId);
+        Serial.printf("Message length: %d\n", message->header.length);
+        Serial.printf("Message type: %d\n", message->header.type);
+        Serial.printf("Message order: %d\n", message->header.order);
+        Serial.printf("Channels bitmask: %02X\n", message->header.channels);
 
         // Reject old messages
-        if (message->header.order <= order) return false;
+        // if (message->header.order <= order) return false;
+        // order = message->header.order;
 
         // Check destination channels
         if (message->header.channels == 0) return false;  // No channel
@@ -67,9 +61,8 @@ class Receiver {
         if (message->header.channels == BROADCAST_CHANNEL) return true;
 
         // Check specific channel
-        for (uint8_t id = 0; id < 8; id++) {
+        for (uint8_t id = 0; id < 8; id++)
           if ((message->header.channels & (1 << id)) == storage.channelId) return true;
-        }
 
         return false;
       }
@@ -84,8 +77,12 @@ class Receiver {
       }
 
       static const bool hasNewMessages() {
-        if (!shouldProcceed()) popMessage();  // Discard unwanted message
-        return messageAvailable;
+        if (!messageAvailable) return false;
+
+        Serial.println("New message available in Receiver");
+        if (shouldProcceed()) return true;
+        popMessage();
+        return false;
       }
 
       /** Removes the oldest message from the buffer, if any */
@@ -100,6 +97,6 @@ class Receiver {
 
       /** Returns a pointer to the length of the oldest message in the buffer */
       static uint8_t* getMessageLength() {
-        return (uint8_t*)&messageLength;
+        return &messageLength;
       }
 };
