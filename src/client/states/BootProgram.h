@@ -17,7 +17,7 @@ class BootProgram : public Program {
   void loop() override {
     EVERY_N_MILLIS(200) {
       Strip::leds[0] = lightOn ? CRGB::Black : CRGB::Green;
-      Strip::leds[NUM_LEDS - 1] = lightOn ? CRGB::Black : CRGB::Green;
+      Strip::leds[NUM_LEDS - 1] = lightOn ? CRGB::Black : CRGB::Grey50;
       lightOn = !lightOn;
       if (!lightOn) blinks++;
 

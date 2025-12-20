@@ -2,9 +2,9 @@
 #include <FastLED.h>
 
 #include "Button.h"
-#include "NonVolatile.h"
 #include "Receiver.h"
 #include "State.h"
+#include "Storage.h"
 #include "Strip.h"
 #include "protocol.h"
 
@@ -26,10 +26,10 @@ void setup() {
   // DO NOT USE Serial
   // Serial.begin(115200);
 
-  programs[TState::STATE_IDLE] = new IdleProgram();
+  programs[TState::STATE_BOOT] = new BootProgram();
   programs[TState::STATE_RECV] = new ReceiveProgram();
   programs[TState::STATE_ADDR] = new AddrProgram();
-  programs[TState::STATE_BOOT] = new BootProgram();
+  programs[TState::STATE_IDLE] = new IdleProgram();
 
   Receiver::setup();
   Strip::setup();
@@ -53,10 +53,10 @@ void setup() {
 }
 
 void loop() {
-  EVERY_N_MILLIS(1000) {                           // 400 without delay
-    Serial.printf("FPS: %d\n", FastLED.getFPS());  // Update FPS counter
-    Serial.printf("WiFi Channel: %d\n", WiFi.channel());
-  }
+  // EVERY_N_MILLIS(1000) {                           // 400 without delay
+  //   Serial.printf("FPS: %d\n", FastLED.getFPS());  // Update FPS counter
+  //   Serial.printf("WiFi Channel: %d\n", WiFi.channel());
+  // }
 
   EVERY_N_MILLIS(FRAME_DELAY_MS) {
     Strip::loop();
@@ -69,10 +69,12 @@ void loop() {
   if (State::hasChanged()) program->setup();
 
   while (Receiver::hasNewMessages()) {
+    Serial.printf("New message received in main loop\n");
+
     static Message* msg = Receiver::getMessage();
     static uint8_t* length = Receiver::getMessageLength();
 
-    Serial.println("Processing new message in main loop");
+    programs[State::getCurrent()]->onMessage(msg, length);
 
     Strip::onMessage(msg, length);
     Receiver::popMessage();

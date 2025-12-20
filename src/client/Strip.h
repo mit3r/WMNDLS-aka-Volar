@@ -44,11 +44,20 @@ class Strip {
       return;
     }
 
+    Serial.printf("Proccesing new message for channels:");
+    for (uint8_t i = 0; i <= 7; i++)
+      if (message->header.channels & (1 << i)) Serial.printf(" %d", i);
+    Serial.println();
+
+    Serial.printf("My channel ID: %d\n", storage.data->channelId);
+
     uint8_t payloadId = 0;
     if (message->header.channels != BROADCAST_CHANNEL) {  // Channel
-      for (uint8_t id = 0; id < 8; id++)
-        if ((message->header.channels & (1 << id)) == storage.channelId)
-          payloadId = id;
+
+      for (uint8_t id = 0; id <= 7; id++) {
+        if (id == storage.data->channelId) break;
+        if (message->header.channels & (1 << id)) payloadId++;
+      }
     }
 
     Serial.printf("Payload ID: %d\n", payloadId);
@@ -58,7 +67,7 @@ class Strip {
     if (message->header.type == MessageType::COLORS24) Strip::set(message->colors24[payloadId]);
 
     Serial.printf("Updated strip with %d colors of type %d on channel %d\n",
-                  NUM_LEDS, message->header.type, storage.channelId);
+                  NUM_LEDS, message->header.type, storage.data->channelId);
 
     changed = true;
   }

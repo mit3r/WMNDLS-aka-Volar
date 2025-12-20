@@ -5,7 +5,7 @@
 
 // Hardware
 #define NUM_LEDS 50
-#define MAX_CHANNELS 16  // 0-14 = channels, 15 = broadcast
+#define MAX_CHANNELS 8          // 0-7 = channels, all = broadcast
 #define BROADCAST_CHANNEL 0xFF  // All channels
 
 // Communication

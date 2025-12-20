@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
-#include "NonVolatile.h"
+#include "Storage.h"
 #include "protocol.h"
 
 #define BUFFER_SIZE 4
@@ -37,34 +37,45 @@ class Receiver {
 
       static bool shouldProcceed() {
         Message* message = &messageBuffer;
-        // Synchronize message order
-        // if (message->header.type == MessageType::ORDER) {
-        //   order = message->header.order;
-        //   return false;
-        // }
 
-        Serial.println("Processing new message in Strip::onMessage");
+        Serial.println("ShouldProcceed called");
         Serial.printf("Network ID: %08X\n", message->header.networkId);
         Serial.printf("Message length: %d\n", message->header.length);
         Serial.printf("Message type: %d\n", message->header.type);
         Serial.printf("Message order: %d\n", message->header.order);
-        Serial.printf("Channels bitmask: %02X\n", message->header.channels);
+        Serial.printf("Channels: ");
 
-        // Reject old messages
-        // if (message->header.order <= order) return false;
-        // order = message->header.order;
+        if (message->header.channels == BROADCAST_CHANNEL) {
+          Serial.print("broadcast");
+        } else {
+          for (uint8_t i = 0; i <= 7; i++)
+            if ((message->header.channels & (1 << i))) Serial.printf("%d ", i);
+        }
+        Serial.println();
 
         // Check destination channels
         if (message->header.channels == 0) return false;  // No channel
 
-        // Check broadcast
-        if (message->header.channels == BROADCAST_CHANNEL) return true;
+        Serial.println("Has valid channel");
 
-        // Check specific channel
-        for (uint8_t id = 0; id < 8; id++)
-          if ((message->header.channels & (1 << id)) == storage.channelId) return true;
+        // Check channel
+        if (!(message->header.channels == BROADCAST_CHANNEL || (message->header.channels & (1 << storage.data->channelId)))) return false;
 
-        return false;
+        Serial.println("Passed broadcast/channel check");
+
+        // Synchronize message order
+        if (message->header.type == MessageType::ORDER)
+          return ((order = message->header.order), false);
+
+        Serial.println("Not an order message");
+
+        // Reject old messages
+        if (message->header.order <= order)
+          return (order = message->header.order, false);
+
+        Serial.println("Is a new message");
+
+        return true;
       }
 
   public:
@@ -79,7 +90,6 @@ class Receiver {
       static const bool hasNewMessages() {
         if (!messageAvailable) return false;
 
-        Serial.println("New message available in Receiver");
         if (shouldProcceed()) return true;
         popMessage();
         return false;
