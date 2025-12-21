@@ -5,14 +5,13 @@
 #include "../Strip.h"
 #include "Program.h"
 
-// static unsigned int
-
 class IdleProgram : public Program {
   private:
   public:
   void setup() override {
     blinks = 0;
     fill_solid(Strip::leds, NUM_LEDS, CRGB::Black);
+    Serial.println("Entered Idle Program");
   }
 
   void loop() override {
@@ -30,11 +29,11 @@ class IdleProgram : public Program {
   }
 
   void onButtonLongPress() override {
-    State.set(TState::STATE_RECV);
+    State::set(TState::STATE_RECV);
   }
 
   void onButtonLongLongPress() override {
-    State.set(TState::STATE_RECV);
+    State::set(TState::STATE_RECV);
   }
 
   unsigned char blinks = 0;

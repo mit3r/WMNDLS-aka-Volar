@@ -3,8 +3,18 @@
 
 #pragma once
 
-#define MAN_ADDR_COUNT 16
-static uint8_t counter = MAN_ADDR_COUNT - 1;
+static uint8_t channelCounter = 0;
+
+constexpr CRGB channelsColors[8] = {
+    CRGB::Red,      // 0
+    CRGB::Green,    // 1
+    CRGB::White,    // 2
+    CRGB::Yellow,   // 3
+    CRGB::Cyan,     // 4
+    CRGB::Magenta,  // 5
+    CRGB::Orange,   // 6
+    CRGB::Purple    // 7
+};
 
 class AddrProgram : public Program {
   public:
@@ -15,32 +25,24 @@ class AddrProgram : public Program {
     Strip::leds[0] = CRGB::Blue;
     Strip::leds[NUM_LEDS - 1] = CRGB::Blue;
 
-    for (size_t i = 0; i < log2(MAN_ADDR_COUNT); i++) {
-      if (counter & (1 << i)) Strip::leds[i + 1] = CRGB::Red;
-    }
+    Strip::leds[1 + channelCounter] = channelsColors[channelCounter];
   };
 
   void setup() override {
-    counter = (unsigned char)storage.deviceId;
+    channelCounter = (unsigned char)storage.data->channelId;
   };
 
   void onButtonPress() override {
-    counter = (counter + 1) % MAN_ADDR_COUNT;
-  };
-
-  void onMessage(const Message& message) override {
-    if (message.header.type == MessageType::SET_ADDR) {
-      storage.deviceId = message.payloadSetAddress.newDeviceId;
-      counter = (unsigned char)storage.deviceId;
-    }
+    channelCounter = (channelCounter + 1) % MAX_CHANNELS;
   };
 
   void onButtonLongPress() override {
-    storage.deviceId = counter;
-    State.set(TState::STATE_RECV);
+    storage.data->channelId = channelCounter;
+    storage.save();
+    State::set(TState::STATE_RECV);
   }
 
   void onButtonLongLongPress() override {
-    State.set(TState::STATE_IDLE);
+    State::set(TState::STATE_IDLE);
   }
 };

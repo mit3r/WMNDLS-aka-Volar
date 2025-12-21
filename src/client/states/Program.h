@@ -9,7 +9,7 @@ struct Program {
   virtual void loop() {};
 
   /** Executes when a new message is received */
-  virtual void onMessage(const Message& message) {};
+  virtual void onMessage(Message* message, uint8_t* length) {};
 
   /** Executes when the button is pressed */
   virtual void onButtonPress() {};
